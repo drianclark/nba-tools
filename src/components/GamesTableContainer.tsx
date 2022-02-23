@@ -57,7 +57,6 @@ export default function GamesTableContainer() {
     }
 
     useEffect(() => {
-
         let fetchCloseGames = async (startDate: Date, teamsFilter: string[], threshold: number) => {
             setLoading(true)
             let differenceBetween = (x: string, y: string) => Math.abs(parseInt(x)-parseInt(y))
@@ -72,7 +71,7 @@ export default function GamesTableContainer() {
         fetchCloseGames(startDate, teamsFilter, threshold)
     }, [startDate, teamsFilter, threshold])
     
-    let isPositiveInteger = (str: string) => {
+    const isPositiveInteger = (str: string) => {
         const num = Number(str);
 
           if (Number.isInteger(num) && num > 0) {
@@ -94,7 +93,7 @@ export default function GamesTableContainer() {
                                 setStartDate(newValue);
                             }
                         }}
-                        renderInput={(params) => <TextField {...params} sx={{width: "10vw"}}/>}
+                        renderInput={(params) => <TextField {...params} sx={{width: "10vw", minWidth: 150, flex: "2 1 10vw"}}/>}
                       />
                 </LocalizationProvider>
                 <TextField 
