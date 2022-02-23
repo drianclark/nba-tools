@@ -82,7 +82,7 @@ export default function GamesTableContainer() {
                 <LocalizationProvider dateAdapter={DateAdapter}>
                     <DatePicker
                         label="Start date"
-                        value={new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)}
+                        value={startDate}
                         onChange={(newValue) => {
                             if (newValue !== null) {
                                 setStartDate(newValue);
