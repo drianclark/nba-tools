@@ -11,7 +11,8 @@ import '../styles/GamesTableContainer.css';
 export default function GamesTableContainer() {
 
     const [games, setGames] = useState<GameData[]>([])
-    const [startDate, setStartDate] = useState<Date>(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
+    let lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const [startDate, setStartDate] = useState<Date>(lastWeek)
     const [threshold, setThreshold] = useState(10)
     const [invalidThreshold, setInvalidThreshold] = useState(false)
     const [thresholdHelper, setThresholdHelper] = useState("")
@@ -61,9 +62,10 @@ export default function GamesTableContainer() {
             setLoading(true)
             let differenceBetween = (x: string, y: string) => Math.abs(parseInt(x)-parseInt(y))
             let games = await fetchGames(startDate, teamsFilter)
-            let filteredGames = games.filter((game) => differenceBetween(game["home_team_score"], game["visitor_team_score"]) <= threshold) 
+            let filteredGames = games.filter((game) => differenceBetween(game["home_team_score"], game["visitor_team_score"]) <= threshold)
+            let sortedGames = filteredGames.sort((g1, g2) => Date.parse(g2["date"]) - Date.parse(g1["date"])) 
 
-            setGames(filteredGames)
+            setGames(sortedGames)
             setLoading(false)
         }
         
