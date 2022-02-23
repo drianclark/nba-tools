@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react"
-import GamesTable from './GamesTable'
-import { GameData } from '../interfaces/GameData'
+import { useEffect, useState } from "react";
+import GamesTable from './GamesTable';
+import { GameData } from '../interfaces/GameData';
 import DateAdapter from '@mui/lab/AdapterMoment';
 import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import { DatePicker } from "@mui/lab";
 import { TextField } from "@mui/material";
 import TeamsFilter from "./TeamsFilter";
 import '../styles/GamesTableContainer.css';
+import moment from "@date-io/moment";
+import { Moment } from "moment";
 
 export default function GamesTableContainer() {
+    const dateAdapter = new moment();
+    const today = dateAdapter.date();
+    const lastWeek = dateAdapter.addWeeks(dateAdapter.date(), -1)
 
     const [games, setGames] = useState<GameData[]>([])
-    let lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const [startDate, setStartDate] = useState<Date>(lastWeek)
+    const [startDate, setStartDate] = useState<Moment>(lastWeek)
     const [threshold, setThreshold] = useState(10)
     const [invalidThreshold, setInvalidThreshold] = useState(false)
     const [thresholdHelper, setThresholdHelper] = useState("")
@@ -20,44 +24,44 @@ export default function GamesTableContainer() {
     const [loading, setLoading] = useState<Boolean>(false);
 
 
-    let fetchGames = async (startDate: Date, teamsFilter: string[]) => {
-        let toIsoDateString = (date: Date): string => date.toISOString().split('T')[0];
+    useEffect(() => {
+        const fetchGames = async (startDate: Moment, teamsFilter: string[]) => {
+            let startDateCopy = new moment().date(startDate) // copying so we don't mutate actual startDate 
 
-        const params = new URLSearchParams({
-            "start_date": toIsoDateString(startDate),
-            "per_page": "100"
-        });
+            const params = new URLSearchParams({
+                "start_date": startDateCopy.add(-1, "days").format(), // actually fetch from a day before (otherwise would miss games from start date)
+                "per_page": "100"
+            });
 
-        let res = await fetch("https://www.balldontlie.io/api/v1/games?" + params)
-        let json = await res.json();
-        let meta = json["meta"];
-        let totalPages = meta["total_pages"]
-
-        let allGames = []
-
-        for (let page = 1; page <= totalPages; page++) {
-            params.set("page", page.toString())            
-            
-            console.log(`Processing page ${page} of ${totalPages}...`)
             let res = await fetch("https://www.balldontlie.io/api/v1/games?" + params)
-            let json = await res.json()
-            let games = json["data"]
+            let json = await res.json();
+            let meta = json["meta"];
+            let totalPages = meta["total_pages"]
 
-            let finishedGames = games.filter((game: any) => game["status"] === "Final")
-            let filteredGames = finishedGames
+            let allGames = []
 
-            if (teamsFilter.length > 0) {
-                filteredGames = finishedGames.filter((game: any) => teamsFilter.includes(game["home_team"]["full_name"]) || teamsFilter.includes(game["visitor_team"]["full_name"]))
+            for (let page = 1; page <= totalPages; page++) {
+                params.set("page", page.toString())            
+            
+                console.log(`Processing page ${page} of ${totalPages}...`)
+                let res = await fetch("https://www.balldontlie.io/api/v1/games?" + params)
+                let json = await res.json()
+                let games = json["data"]
+
+                let finishedGames = games.filter((game: any) => game["status"] === "Final")
+                let filteredGames = finishedGames
+
+                if (teamsFilter.length > 0) {
+                    filteredGames = finishedGames.filter((game: any) => teamsFilter.includes(game["home_team"]["full_name"]) || teamsFilter.includes(game["visitor_team"]["full_name"]))
+                }
+
+                allGames.push(...filteredGames);
             }
 
-            allGames.push(...filteredGames);
+            return allGames
         }
 
-        return allGames
-    }
-
-    useEffect(() => {
-        let fetchCloseGames = async (startDate: Date, teamsFilter: string[], threshold: number) => {
+        const fetchCloseGames = async (startDate: moment.Moment, teamsFilter: string[], threshold: number) => {
             setLoading(true)
             let differenceBetween = (x: string, y: string) => Math.abs(parseInt(x)-parseInt(y))
             let games = await fetchGames(startDate, teamsFilter)
@@ -88,12 +92,15 @@ export default function GamesTableContainer() {
                     <DatePicker
                         label="Start date"
                         value={startDate}
-                        onChange={(newValue) => {
+                        onChange={() => {}} // only do something onAccept, sadly onChange is required
+                        disableCloseOnSelect={false}
+                        onAccept={(newValue) => {
                             if (newValue !== null) {
                                 setStartDate(newValue);
                             }
                         }}
-                        renderInput={(params) => <TextField {...params} sx={{width: "10vw", minWidth: 150, flex: "2 1 10vw"}}/>}
+                        maxDate={today}
+                        renderInput={(params) => <TextField {...params} sx={{width: 180}}/>}
                       />
                 </LocalizationProvider>
                 <TextField 
@@ -114,7 +121,7 @@ export default function GamesTableContainer() {
                     variant="outlined" 
                     label="Score threshold"
                     defaultValue={10}
-                    sx={{marginLeft: 1}}/>
+                    sx={{marginLeft: 1, width: 120}}/>
                 
                 { loading &&  <div className="lds-dual-ring"></div> }
 
