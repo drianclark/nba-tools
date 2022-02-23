@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import GamesTable from './GamesTable'
 import { GameData } from '../interfaces/GameData'
 import DateAdapter from '@mui/lab/AdapterMoment';
@@ -6,6 +6,7 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider'
 import { DatePicker } from "@mui/lab";
 import { TextField } from "@mui/material";
 import TeamsFilter from "./TeamsFilter";
+import '../styles/GamesTableContainer.css';
 
 export default function GamesTableContainer() {
 
@@ -15,6 +16,7 @@ export default function GamesTableContainer() {
     const [invalidThreshold, setInvalidThreshold] = useState(false)
     const [thresholdHelper, setThresholdHelper] = useState("")
     const [teamsFilter, setTeamsFilter] = useState<string[]>([])
+    const [loading, setLoading] = useState<Boolean>(false);
 
 
     let fetchGames = async (startDate: Date, teamsFilter: string[]) => {
@@ -56,11 +58,13 @@ export default function GamesTableContainer() {
     useEffect(() => {
 
         let fetchCloseGames = async (startDate: Date, teamsFilter: string[], threshold: number) => {
+            setLoading(true)
             let differenceBetween = (x: string, y: string) => Math.abs(parseInt(x)-parseInt(y))
             let games = await fetchGames(startDate, teamsFilter)
             let filteredGames = games.filter((game) => differenceBetween(game["home_team_score"], game["visitor_team_score"]) <= threshold) 
 
             setGames(filteredGames)
+            setLoading(false)
         }
         
         fetchCloseGames(startDate, teamsFilter, threshold)
@@ -78,7 +82,7 @@ export default function GamesTableContainer() {
 
     return (
         <div style={{ display: "flex", flexDirection: "column"}}>
-            <div style={{ display: "flex", marginBottom: 10}}>
+            <div style={{ display: "flex", marginBottom: 10, marginTop: 40}}>
                 <LocalizationProvider dateAdapter={DateAdapter}>
                     <DatePicker
                         label="Start date"
@@ -88,7 +92,7 @@ export default function GamesTableContainer() {
                                 setStartDate(newValue);
                             }
                         }}
-                        renderInput={(params) => <TextField {...params} sx={{marginTop: 5, width: "10vw"}}/>}
+                        renderInput={(params) => <TextField {...params} sx={{width: "10vw"}}/>}
                       />
                 </LocalizationProvider>
                 <TextField 
@@ -109,8 +113,10 @@ export default function GamesTableContainer() {
                     variant="outlined" 
                     label="Score threshold"
                     defaultValue={10}
-                    sx={{marginTop: 5, marginLeft: 1}}/>
+                    sx={{marginLeft: 1}}/>
                 
+                { loading &&  <div className="lds-dual-ring"></div> }
+
             </div>
             <TeamsFilter setTeamsFilter={setTeamsFilter}/>
             <GamesTable games={games}/>
