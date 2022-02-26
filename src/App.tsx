@@ -1,6 +1,5 @@
 import { Container, createTheme, ThemeProvider } from '@mui/material';
 import { blue } from '@mui/material/colors';
-import './App.css';
 import GamesTable from './components/GamesTableContainer';
 
 

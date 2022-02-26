@@ -1,8 +1,0 @@
-{
-  "short_name": "NBA Tools",
-  "name": "A collection of NBA tools (or something)",
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
-}
