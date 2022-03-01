@@ -1,25 +1,20 @@
 import { useEffect, useState } from "react";
 import GamesTable from './GamesTable';
 import { GameData } from '../interfaces/GameData';
-import DateAdapter from '@mui/lab/AdapterMoment';
-import LocalizationProvider from '@mui/lab/LocalizationProvider'
-import { DatePicker } from "@mui/lab";
-import { TextField } from "@mui/material";
 import TeamsFilter from "./TeamsFilter";
 import '../styles/GamesTableContainer.css';
 import moment from "@date-io/moment";
 import { Moment } from "moment";
+import DateFilter from "./DateFilter";
+import ThresholdField from './ThresholdField';
 
 export default function GamesTableContainer() {
     const dateAdapter = new moment();
-    const today = dateAdapter.date();
     const lastWeek = dateAdapter.addWeeks(dateAdapter.date(), -1)
 
     const [games, setGames] = useState<GameData[]>([])
     const [startDate, setStartDate] = useState<Moment>(lastWeek)
     const [threshold, setThreshold] = useState(10)
-    const [invalidThreshold, setInvalidThreshold] = useState(false)
-    const [thresholdHelper, setThresholdHelper] = useState("")
     const [teamsFilter, setTeamsFilter] = useState<string[]>([])
     const [loading, setLoading] = useState<Boolean>(false);
 
@@ -43,7 +38,6 @@ export default function GamesTableContainer() {
             for (let page = 1; page <= totalPages; page++) {
                 params.set("page", page.toString())            
             
-                console.log(`Processing page ${page} of ${totalPages}...`)
                 let res = await fetch("https://www.balldontlie.io/api/v1/games?" + params)
                 let json = await res.json()
                 let games = json["data"]
@@ -74,57 +68,13 @@ export default function GamesTableContainer() {
         
         fetchCloseGames(startDate, teamsFilter, threshold)
     }, [startDate, teamsFilter, threshold])
-    
-    const isPositiveInteger = (str: string) => {
-        const num = Number(str);
-
-          if (Number.isInteger(num) && num > 0) {
-            return true;
-          }
-
-          return false;
-    }
 
     return (
         <div style={{ display: "flex", flexDirection: "column"}}>
             <div style={{ display: "flex", marginBottom: 10, marginTop: 40}}>
-                <LocalizationProvider dateAdapter={DateAdapter}>
-                    <DatePicker
-                        label="Start date"
-                        value={startDate}
-                        onChange={() => {}} // only do something onAccept, sadly onChange is required
-                        disableCloseOnSelect={false}
-                        onAccept={(newValue) => {
-                            if (newValue !== null) {
-                                setStartDate(newValue);
-                            }
-                        }}
-                        maxDate={today}
-                        renderInput={(params) => <TextField {...params} sx={{width: 180}}/>}
-                      />
-                </LocalizationProvider>
-                <TextField 
-                    onKeyDown={(e: any) => { 
-                        if (e.key === "Enter") {
-                            if (isPositiveInteger(e.target.value)) {
-                                setThreshold(e.target.value)
-                                setInvalidThreshold(false)
-                                setThresholdHelper("")
-                            } else {
-                                setInvalidThreshold(true)
-                                setThresholdHelper("Invalid threshold value, please enter a positive integer")
-                            }
-                        }
-                    }}
-                    error={invalidThreshold}
-                    helperText={thresholdHelper}
-                    variant="outlined" 
-                    label="Score threshold"
-                    defaultValue={10}
-                    sx={{marginLeft: 1, width: 120}}/>
-                
+                <DateFilter startDate={startDate} setStartDate={setStartDate}/>
+                <ThresholdField threshold={threshold} setThreshold={setThreshold}/>
                 { loading &&  <div className="lds-dual-ring"></div> }
-
             </div>
             <TeamsFilter setTeamsFilter={setTeamsFilter}/>
             <GamesTable games={games}/>
