@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import GamesTable from './GamesTable';
-import { GameData } from '../interfaces/GameData';
-import TeamsFilter from "./TeamsFilter";
-import '../styles/GamesTableContainer.css';
 import moment from "@date-io/moment";
 import { Moment } from "moment";
+import { useEffect, useState } from "react";
+import { GameData } from '../interfaces/GameData';
+import '../styles/GamesTableContainer.css';
 import DateFilter from "./DateFilter";
+import GamesTable from './GamesTable';
+import TeamsFilter from "./TeamsFilter";
 import ThresholdField from './ThresholdField';
 
 export default function GamesTableContainer() {

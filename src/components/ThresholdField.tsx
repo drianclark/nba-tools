@@ -17,6 +17,16 @@ export default function ThresholdField(props: {threshold: number, setThreshold: 
 
 	return (
 		<TextField
+			onBlur={(e: any) => {
+				if (isPositiveInteger(e.target.value)) {
+					props.setThreshold(e.target.value)
+					setInvalidThreshold(false)
+					setThresholdHelper("")
+				} else {
+					setInvalidThreshold(true)
+					setThresholdHelper("Invalid threshold value, please enter a positive integer")
+				}
+			}}
 			onKeyDown={(e: any) => {
 				if (e.key === "Enter") {
 					if (isPositiveInteger(e.target.value)) {
